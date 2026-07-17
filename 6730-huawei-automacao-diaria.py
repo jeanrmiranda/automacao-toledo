@@ -171,6 +171,8 @@ comandos = [
     "graceful-restart",
     "mpls ldp remote-peer 172.16.11.100",
     "remote-ip 172.16.11.100",
+    "mpls ldp remote-peer 172.16.11.1",
+    "remote-ip 172.16.11.1",
     "mpls l2vpn",
     "quit",
     "set save-configuration backup-to-server server 10.0.18.127 transport-type sftp user jtech password portugal@1985 path /home/jtech/backup-metro",
