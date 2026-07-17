@@ -195,7 +195,7 @@ comandos = [
     "authentication-mode aaa",
     "user privilege level 15",
     "history-command max-size 256",
-    "idle-timeout 0 0",
+    "idle-timeout 0 10",
     "user-interface vty 0 4",
     "authentication-mode aaa",
     "user privilege level 15",
