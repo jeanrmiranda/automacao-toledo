@@ -2,6 +2,8 @@ from netmiko import ConnectHandler
 from netmiko.exceptions import NetmikoAuthenticationException, NetmikoTimeoutException
 import sys
 
+COMANDOS_LENTOS = {"save", "reset counters interface"}
+
 
 def enviar_comandos_ssh(ip, username, password, comandos):
     device = {
@@ -28,9 +30,11 @@ def enviar_comandos_ssh(ip, username, password, comandos):
     try:
         for cmd in comandos:
             cmd_formatado = cmd.replace("{ip}", ip)
+            timeout_cmd = 15 if cmd_formatado in COMANDOS_LENTOS else 3
+
             resposta = conn.send_command_timing(
                 cmd_formatado,
-                read_timeout=10,
+                read_timeout=timeout_cmd,
                 strip_prompt=False,
                 strip_command=False,
             )
@@ -40,7 +44,7 @@ def enviar_comandos_ssh(ip, username, password, comandos):
             while "[Y/N]" in resposta or "(y/n)" in resposta.lower():
                 resposta = conn.send_command_timing(
                     "y",
-                    read_timeout=10,
+                    read_timeout=timeout_cmd,
                     strip_prompt=False,
                     strip_command=False,
                 )
@@ -171,8 +175,6 @@ comandos = [
     "graceful-restart",
     "mpls ldp remote-peer 172.16.11.100",
     "remote-ip 172.16.11.100",
-    "mpls ldp remote-peer 172.16.11.1",
-    "remote-ip 172.16.11.1",
     "mpls l2vpn",
     "quit",
     "set save-configuration backup-to-server server 10.0.18.127 transport-type sftp user jtech password portugal@1985 path /home/jtech/backup-metro",
@@ -189,7 +191,7 @@ comandos = [
     "authentication-mode aaa",
     "user privilege level 15",
     "history-command max-size 256",
-    "idle-timeout 0 10",
+    "idle-timeout 0 0",
     "user-interface vty 0 4",
     "authentication-mode aaa",
     "user privilege level 15",
