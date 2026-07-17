@@ -1,29 +1,6 @@
 from netmiko import ConnectHandler
 from netmiko.exceptions import NetmikoAuthenticationException, NetmikoTimeoutException
 import sys
-import re
-
-
-def enviar_comando_seguro(conn, comando, timeout=10):
-    """
-    Envia um comando e aguarda ativamente por:
-    - o prompt normal do equipamento (ex: ]  ou  >)
-    - ou uma pergunta de confirmação [Y/N] / (y/n)
-    Responde automaticamente 'y' se necessário.
-    """
-    padrao_prompt = r"[\]>]\s*$"
-    padrao_confirmacao = r"\[Y/N\]|\(y/n\)"
-    padrao_combinado = f"({padrao_prompt}|{padrao_confirmacao})"
-
-    conn.write_channel(comando + "\n")
-    output = conn.read_until_pattern(pattern=padrao_combinado, read_timeout=timeout)
-
-    # Se apareceu uma confirmação, responde "y" e continua lendo até o prompt normal
-    while re.search(padrao_confirmacao, output, re.IGNORECASE):
-        conn.write_channel("y\n")
-        output += conn.read_until_pattern(pattern=padrao_combinado, read_timeout=timeout)
-
-    return output
 
 
 def enviar_comandos_ssh(ip, username, password, comandos):
@@ -51,9 +28,26 @@ def enviar_comandos_ssh(ip, username, password, comandos):
     try:
         for cmd in comandos:
             cmd_formatado = cmd.replace("{ip}", ip)
-            output = enviar_comando_seguro(conn, cmd_formatado)
+            resposta = conn.send_command_timing(
+                cmd_formatado,
+                read_timeout=10,
+                strip_prompt=False,
+                strip_command=False,
+            )
+            output_total = resposta
+
+            # Verifica SÓ a resposta mais recente (não o texto acumulado)
+            while "[Y/N]" in resposta or "(y/n)" in resposta.lower():
+                resposta = conn.send_command_timing(
+                    "y",
+                    read_timeout=10,
+                    strip_prompt=False,
+                    strip_command=False,
+                )
+                output_total += resposta
+
             print(f"[{ip}] >> {cmd_formatado}")
-            print(output)
+            print(output_total)
 
         print(f"✅ Finalizado: {ip}")
 
