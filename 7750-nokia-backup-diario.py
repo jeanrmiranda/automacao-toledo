@@ -80,7 +80,7 @@ def ler_ips_arquivo(nome_arquivo):
 if not os.path.exists('/home/jtech/backup-routers/'):
     os.makedirs('/home/jtech/backup-routers/')
 
-lista_ips = ler_ips_arquivo('/home/jtech/script-huawei/7750-nokia-ipv4.txt')
+lista_ips = ler_ips_arquivo('/home/jtech/automacao-toledo/7750-nokia-ipv4.txt')
 username = "jean"
 password = "yCpv9tj9"
 
