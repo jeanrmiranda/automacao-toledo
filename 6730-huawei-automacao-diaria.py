@@ -28,26 +28,26 @@ def enviar_comandos_ssh(ip, username, password, comandos):
     try:
         for cmd in comandos:
             cmd_formatado = cmd.replace("{ip}", ip)
-            output = conn.send_command_timing(
+            resposta = conn.send_command_timing(
                 cmd_formatado,
                 read_timeout=10,
                 strip_prompt=False,
                 strip_command=False,
             )
+            output_total = resposta
 
-            # Detecta e responde automaticamente qualquer prompt de confirmação
-            tentativas = 0
-            while ("[Y/N]" in output or "(y/n)" in output.lower()) and tentativas < 3:
-                output += conn.send_command_timing(
+            # Verifica SÓ a resposta mais recente (não o texto acumulado)
+            while "[Y/N]" in resposta or "(y/n)" in resposta.lower():
+                resposta = conn.send_command_timing(
                     "y",
                     read_timeout=10,
                     strip_prompt=False,
                     strip_command=False,
                 )
-                tentativas += 1
+                output_total += resposta
 
             print(f"[{ip}] >> {cmd_formatado}")
-            print(output)
+            print(output_total)
 
         print(f"✅ Finalizado: {ip}")
 
@@ -75,7 +75,7 @@ lista_ips = ler_ips_arquivo('6730-huawei-ipv4-instalados.txt')
 username = "jean"
 password = "portugal@1985"
 
-# Lista dos comandos (SEM os "y" manuais - agora é automático)
+# Lista dos comandos (sem os "y" manuais - agora é automático)
 comandos = [
     "reset counters interface",
     "system-view",
