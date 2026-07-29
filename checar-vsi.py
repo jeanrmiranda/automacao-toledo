@@ -26,7 +26,7 @@ import sys
 # ------------------------------------------------------------------
 ARQUIVO_IPS = "6730-huawei-ipv4-instalados.txt"
 USERNAME = "jean"
-PASSWORD = "SUA_SENHA_AQUI"
+PASSWORD = "portugal@1985"
 
 
 def parse_display_vsi(output):
