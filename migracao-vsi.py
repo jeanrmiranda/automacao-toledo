@@ -84,6 +84,19 @@ password = "portugal@1985"
 comandos = [
     "system-view",
 
+    "vsi tunnel-19",
+    "description Mgmt: TELEFONIA",
+    "pwsignal ldp",
+    "vsi-id 19",
+    "flow-label both",
+    "peer 172.16.11.100",
+    "mtu 1600",
+    "quit",
+    "interface Vlanif 19",
+    "description Mgmt: TELEFONIA",
+    "l2 binding vsi tunnel-19",
+    "quit",
+
     "vsi tunnel-22",
     "description Mgmt: Cameras SEGURANCA Toledo",
     "pwsignal ldp",
