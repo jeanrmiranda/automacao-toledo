@@ -24,7 +24,7 @@ VLANS = [22, 254, 750, 1008, 1029, 1037, 1051, 1055,
 
 ARQUIVO_IPS = "6730-huawei-ipv4-instalados.txt"
 USERNAME = "jean"
-PASSWORD = "SUA_SENHA_AQUI"
+PASSWORD = "portugal@1985"
 
 
 def parse_display_vsi(output):
