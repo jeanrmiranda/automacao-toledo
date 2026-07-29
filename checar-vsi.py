@@ -1,8 +1,13 @@
 #!/usr/bin/env python3
 """
-Conecta em cada switch Huawei, roda 'display vsi' para ver o status geral
-das VSIs da lista, depois roda 'display vsi name <nome> verbose' em cada
-uma pra detalhar o status (up/down) de cada peer.
+Conecta em cada switch Huawei, roda 'display vsi' para pegar TODAS as VSIs
+do equipamento (up e down), depois roda 'display vsi name <nome> verbose'
+em cada VSI que estiver UP para checar se algum peer dela esta down.
+
+Ao final, imprime por switch:
+  - Lista de VSIs UP
+  - Lista de VSIs DOWN
+  - Lista de VSIs UP que tem peer(s) DOWN
 
 Uso:
   python3 check_vsi_status.py
@@ -19,12 +24,9 @@ import sys
 # ------------------------------------------------------------------
 # EDITE AQUI
 # ------------------------------------------------------------------
-VLANS = [22, 254, 750, 1008, 1029, 1037, 1051, 1055,
-         1060, 1077, 1105, 2120, 2121, 2801, 2810, 3000]
-
 ARQUIVO_IPS = "6730-huawei-ipv4-instalados.txt"
 USERNAME = "jean"
-PASSWORD = "portugal@1985"
+PASSWORD = "SUA_SENHA_AQUI"
 
 
 def parse_display_vsi(output):
@@ -95,44 +97,32 @@ def checar_switch(ip, username, password):
         saida_vsi = conn.send_command("display vsi")
         vsis = parse_display_vsi(saida_vsi)
 
-        vsis_up = []
-        vsis_down = []
-        vsis_nao_encontradas = []
+        # Loop por TODAS as VSIs encontradas no display vsi (sem filtro de lista fixa)
+        vsis_up = [nome for nome, estado in vsis.items() if estado == "up"]
+        vsis_down = [nome for nome, estado in vsis.items() if estado == "down"]
 
-        for vlan in VLANS:
-            nome = f"tunnel-{vlan}"
-            estado = vsis.get(nome)
-            if estado is None:
-                vsis_nao_encontradas.append(nome)
-            elif estado == "up":
-                vsis_up.append(nome)
-            else:
-                vsis_down.append(nome)
-
-        print(f"\n--- VSIs UP ({len(vsis_up)}) ---")
+        # Para cada VSI up, checa o verbose e guarda quais peers estao down
+        vsis_up_com_peer_down = {}
         for nome in vsis_up:
+            saida_verbose = conn.send_command(f"display vsi name {nome} verbose")
+            peers = parse_display_vsi_verbose(saida_verbose)
+            peers_down = [p for p, estado_peer in peers if estado_peer != "up"]
+            if peers_down:
+                vsis_up_com_peer_down[nome] = peers_down
+
+        # ---------------- RESUMO FINAL ----------------
+        print(f"\n--- VSIs UP ({len(vsis_up)}) ---")
+        for nome in sorted(vsis_up):
             print(f"  ✅ {nome}")
 
         print(f"\n--- VSIs DOWN ({len(vsis_down)}) ---")
-        for nome in vsis_down:
+        for nome in sorted(vsis_down):
             print(f"  ❌ {nome}")
 
-        if vsis_nao_encontradas:
-            print(f"\n--- Nao encontradas nesse switch ({len(vsis_nao_encontradas)}) ---")
-            for nome in vsis_nao_encontradas:
-                print(f"  ⚠️  {nome}")
-
-        print("\n--- DETALHE DE PEERS ---")
-        for nome in vsis_up + vsis_down:
-            saida_verbose = conn.send_command(f"display vsi name {nome} verbose")
-            peers = parse_display_vsi_verbose(saida_verbose)
-
-            print(f"\n{nome}:")
-            if not peers:
-                print("    (nenhum peer encontrado)")
-            for peer_ip, estado_peer in peers:
-                icone = "✅" if estado_peer == "up" else "❌"
-                print(f"    {icone} peer {peer_ip} -> {estado_peer}")
+        print(f"\n--- VSIs UP mas com peer(s) DOWN ({len(vsis_up_com_peer_down)}) ---")
+        for nome in sorted(vsis_up_com_peer_down):
+            peers_down = vsis_up_com_peer_down[nome]
+            print(f"  ⚠️  {nome}: peer(s) down -> {', '.join(peers_down)}")
 
     except Exception as e:
         print(f"❌ Erro ao processar comandos em {ip}: {e}")
