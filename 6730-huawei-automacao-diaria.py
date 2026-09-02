@@ -119,7 +119,7 @@ comandos = [
     "undo ntp-service access server",
     "ntp-service ipv6 server disable",
     "ntp-service source-interface LoopBack 0",
-    "undo ntp-service unicast-server 172.16.11.5"
+    "undo ntp-service unicast-server 172.16.11.5",
     "ntp-service unicast-server 172.16.11.100",
     "ospf 1 router-id {ip}",
     "opaque-capability enable",
