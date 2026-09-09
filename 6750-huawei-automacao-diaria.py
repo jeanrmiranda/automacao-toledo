@@ -1,6 +1,8 @@
+import os
+import sys
+
 from netmiko import ConnectHandler
 from netmiko.exceptions import NetmikoAuthenticationException, NetmikoTimeoutException
-import sys
 
 COMANDOS_LENTOS = {"save", "reset counters interface"}
 
@@ -40,7 +42,7 @@ def enviar_comandos_ssh(ip, username, password, comandos):
             )
             output_total = resposta
 
-            # Verifica SÓ a resposta mais recente (não o texto acumulado)
+            # Confirma automaticamente qualquer prompt [Y/N] / (y/n)
             while "[Y/N]" in resposta or "(y/n)" in resposta.lower():
                 resposta = conn.send_command_timing(
                     "y",
@@ -74,18 +76,26 @@ def ler_ips_arquivo(nome_arquivo):
         sys.exit(1)
 
 
-# IPs e credenciais
-lista_ips = ler_ips_arquivo('6750-huawei-ipv4-instalados.txt')
-username = "jean"
-password = "portugal@1985"
-backup_password = '''%+%##!!!!!!!!!"!!!!"!!!!*!!!!7LTnVOK_g:%'3B3xh$N,'DuuUzGzuUQV8k4!!!!!2jp5!!!!!!>!!!!i6>#2k$g^MVd4$GsFcK1>9x1.4m|^6'g3TQs\*n>%+%#'''
+def obter_variavel_obrigatoria(nome_var):
+    valor = os.environ.get(nome_var)
+    if not valor:
+        print(f"❌ Variável de ambiente {nome_var} não definida.")
+        sys.exit(1)
+    return valor
 
-# Lista dos comandos (sem os "y" manuais - agora é automático)
+
+# IPs e credenciais (via variáveis de ambiente, carregadas do .env-huawei)
+lista_ips = ler_ips_arquivo('6750-huawei-ipv4-instalados.txt')
+username = obter_variavel_obrigatoria("HUAWEI_SSH_USER")
+password = obter_variavel_obrigatoria("HUAWEI_SSH_PASSWORD")
+senha_novo_usuario = obter_variavel_obrigatoria("HUAWEI_NOVO_USUARIO_SENHA")
+backup_password = obter_variavel_obrigatoria("HUAWEI_BACKUP_PASSWORD")
+
+# Lista dos comandos (sem os "y" manuais - a função já confirma [Y/N] automaticamente)
 comandos = [
     "system-view",
     "undo lldp enable",
     "clock timezone Brasilia minus 03:00:00",
-    "y",
     "bfd",
     "quit",
     "info-center loghost 10.0.18.120 source-ip {ip} local-time",
@@ -96,47 +106,30 @@ comandos = [
     "router id {ip}",
     "aaa",
     "local-user jtechsupport user-group manage-ug",
-    "y",
     "local-user jtechsupport service-type telnet terminal ssh ftp http",
-    "y",
     "local-user jtechsupport password ",
-    "Batman@123@RobiN",
-    "Batman@123@RobiN",
+    senha_novo_usuario,
+    senha_novo_usuario,
     "local-user jeanrmiranda user-group manage-ug",
-    "y",
     "local-user jeanrmiranda service-type telnet terminal ssh ftp http",
-    "y",
     "local-user jeanrmiranda password ",
-    "Batman@123@RobiN",
-    "Batman@123@RobiN",
+    senha_novo_usuario,
+    senha_novo_usuario,
     "quit",
     "ssh server cipher aes256_ctr aes128_ctr",
     "ssh server hmac sha2_256",
     "ssh client key-exchange dh_group_exchange_sha256 dh_group_exchange_sha1 dh_group14_sha1 dh_group16_sha512 curve25519_sha256",
-    "y",
     "ssh client cipher aes256_ctr aes128_ctr",
     "ssh client hmac sha2_256",
     "ssh server publickey rsa rsa_sha2_512 rsa_sha2_256",
     "ssh server-source all-interface",
-    "y",
     "ntp ipv6 server disable",
-    "y",
     "ntp server disable",
-    "y",
     "ntp server source-interface all disable",
-    "y",
     "ntp ipv6 server source-interface all disable",
-    "y",
-    "undo ntp unicast-peer 172.16.11.5",
-    "y",
-    "undo ntp unicast-peer 10.0.18.110",
-    "y",
-    "ntp unicast-peer 10.0.18.140",
-    "y",
-    "ntp unicast-peer 10.0.18.141",
-    "y",
+    "ntp unicast-peer 172.16.11.5",
+    "ntp unicast-peer 10.0.18.110",
     "ntp server source-interface LoopBack0",
-    "y",
     "undo ssh user bolin",
     "ospf 1 router-id {ip}",
     "opaque-capability enable",
@@ -174,7 +167,6 @@ comandos = [
     "rule 100 description Bloqueia o resto",
     "quit",
     "undo acl number 2001",
-    "yes",
     "mpls lsr-id {ip}",
     "mpls",
     "mpls te",
@@ -187,7 +179,6 @@ comandos = [
     "quit",
     "mpls ldp",
     "graceful-restart",
-    "y",
     "mpls l2vpn",
     "quit",
     "configuration file auto-save interval 60",
@@ -208,15 +199,12 @@ comandos = [
     "idle-timeout 0 0",
     "protocol inbound all",
     "ssh user jeanrmiranda",
-    "ssh user jeanrmiranda",
     "ssh user jeanrmiranda authentication-type password",
     "ssh user jeanrmiranda service-type all",
     "quit",
     "save",
-    "y",
 ]
 
 # Roda para cada IP
 for ip in lista_ips:
     enviar_comandos_ssh(ip, username, password, comandos)
-  
