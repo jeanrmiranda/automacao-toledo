@@ -75,9 +75,10 @@ def ler_ips_arquivo(nome_arquivo):
 
 
 # IPs e credenciais
-lista_ips = ler_ips_arquivo('6730-huawei-ipv4-instalados.txt')
+lista_ips = ler_ips_arquivo('6750-huawei-ipv4-instalados.txt')
 username = "jean"
 password = "portugal@1985"
+backup_password = '''%+%##!!!!!!!!!"!!!!"!!!!*!!!!7LTnVOK_g:%'3B3xh$N,'DuuUzGzuUQV8k4!!!!!2jp5!!!!!!>!!!!i6>#2k$g^MVd4$GsFcK1>9x1.4m|^6'g3TQs\*n>%+%#'''
 
 # Lista dos comandos (sem os "y" manuais - agora é automático)
 comandos = [
