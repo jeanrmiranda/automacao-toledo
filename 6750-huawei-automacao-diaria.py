@@ -1,8 +1,6 @@
-import os
-import sys
-
 from netmiko import ConnectHandler
 from netmiko.exceptions import NetmikoAuthenticationException, NetmikoTimeoutException
+import sys
 
 COMANDOS_LENTOS = {"save", "reset counters interface"}
 
@@ -76,20 +74,12 @@ def ler_ips_arquivo(nome_arquivo):
         sys.exit(1)
 
 
-def obter_variavel_obrigatoria(nome_var):
-    valor = os.environ.get(nome_var)
-    if not valor:
-        print(f"❌ Variável de ambiente {nome_var} não definida.")
-        sys.exit(1)
-    return valor
-
-
-# IPs e credenciais (via variáveis de ambiente, carregadas do .env-huawei)
+# IPs e credenciais
 lista_ips = ler_ips_arquivo('6750-huawei-ipv4-instalados.txt')
-username = obter_variavel_obrigatoria("HUAWEI_SSH_USER")
-password = obter_variavel_obrigatoria("HUAWEI_SSH_PASSWORD")
-senha_novo_usuario = obter_variavel_obrigatoria("HUAWEI_NOVO_USUARIO_SENHA")
-backup_password = obter_variavel_obrigatoria("HUAWEI_BACKUP_PASSWORD")
+username = "jean"
+password = "portugal@1985"
+senha_novo_usuario = "Batman@123@RobiN"
+backup_password = "portugal@1985"
 
 # Lista dos comandos (sem os "y" manuais - a função já confirma [Y/N] automaticamente)
 comandos = [
