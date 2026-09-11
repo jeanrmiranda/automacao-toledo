@@ -55,6 +55,10 @@ delete routing-options static route 138.94.81.0/24 community 65000:6666
 delete routing-options static route 138.94.82.0/24 community 65000:6666
 delete routing-options static route 138.94.83.0/24 community 65000:6666
 
+delete routing-options static route 143.208.4.0/24 community 65000:6666
+delete routing-options static route 143.208.5.0/24 community 65000:6666
+delete routing-options static route 143.208.6.0/24 community 65000:6666
+delete routing-options static route 143.208.7.0/24 community 65000:6666
 
 
 
